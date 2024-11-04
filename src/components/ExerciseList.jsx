@@ -46,7 +46,7 @@ function ExerciseList() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Exercise Library</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-8">Exercise Library</h1>
 
       <div className="mb-8 space-y-6">
         <div className="relative">
@@ -60,7 +60,7 @@ function ExerciseList() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <FilterSelect
             label="Level"
             options={Array.from(new Set(exercises.map(e => e.level)))}
@@ -88,28 +88,28 @@ function ExerciseList() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedExercises.map((exercise) => (
           <ExerciseCard key={exercise.name} exercise={exercise} />
         ))}
       </div>
 
       {totalPages > 1 && (
-        <div className="mt-8 flex justify-center space-x-2">
+        <div className="mt-8 flex flex-wrap justify-center items-center gap-2">
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 rounded-lg bg-gray-200 disabled:opacity-50 hover:bg-gray-300 transition-colors"
+            className="px-4 py-2 rounded-lg bg-gray-200 disabled:opacity-50 hover:bg-gray-300 transition-colors text-sm"
           >
             Previous
           </button>
-          <span className="px-4 py-2">
+          <span className="px-4 py-2 text-sm">
             Page {currentPage} of {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 rounded-lg bg-gray-200 disabled:opacity-50 hover:bg-gray-300 transition-colors"
+            className="px-4 py-2 rounded-lg bg-gray-200 disabled:opacity-50 hover:bg-gray-300 transition-colors text-sm"
           >
             Next
           </button>

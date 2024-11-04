@@ -27,7 +27,6 @@ function WorkoutPlanner() {
   }, [timeLeft, activeTimer]);
 
   useEffect(() => {
-    // Calculate total calories burned for the day
     const dayWorkouts = state.completedWorkouts.filter(
       workout => format(new Date(workout.date), 'yyyy-MM-dd') === selectedDate
     );
@@ -121,61 +120,63 @@ function WorkoutPlanner() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6">
       {/* Summary Header */}
-      <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex items-center space-x-3">
-            <FiCalendar className="text-primary text-xl" />
+            <FiCalendar className="text-primary text-xl flex-shrink-0" />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="border rounded-md px-2 py-1"
+              className="w-full border rounded-md px-2 py-1 text-sm"
             />
           </div>
           <div className="flex items-center space-x-3">
-            <FiZap className="text-primary text-xl" />
-            <span>Calories Burned: {totalCaloriesBurned}</span>
+            <FiZap className="text-primary text-xl flex-shrink-0" />
+            <span className="text-sm">Calories: {totalCaloriesBurned}</span>
           </div>
           <div className="flex items-center space-x-3">
-            <FiClock className="text-primary text-xl" />
-            <span>Total Time: {formatTime(totalTime)}</span>
+            <FiClock className="text-primary text-xl flex-shrink-0" />
+            <span className="text-sm">Time: {formatTime(totalTime)}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">Workout Planner</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-bold">Workout Planner</h1>
         <button
           onClick={() => setShowExerciseSearch(!showExerciseSearch)}
-          className="w-full md:w-auto px-4 py-2 bg-primary text-white rounded-lg flex items-center justify-center space-x-2 hover:bg-opacity-90 transition-colors"
+          className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg flex items-center justify-center space-x-2 hover:bg-opacity-90 transition-colors"
         >
           <FiPlus />
           <span>Add Exercise</span>
         </button>
       </div>
 
-      <div className="flex space-x-2 overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0">
-        {schedule.map((day) => (
-          <button
-            key={day.day}
-            onClick={() => setSelectedDay(day.day)}
-            className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-              selectedDay === day.day
-                ? 'bg-primary text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            {day.day}
-          </button>
-        ))}
+      <div className="flex overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+        <div className="flex space-x-2">
+          {schedule.map((day) => (
+            <button
+              key={day.day}
+              onClick={() => setSelectedDay(day.day)}
+              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors flex-shrink-0 ${
+                selectedDay === day.day
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {day.day}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Exercise Search Modal */}
       {showExerciseSearch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-4 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Add Exercise</h2>
               <button
@@ -197,7 +198,7 @@ function WorkoutPlanner() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {filteredExercises.map((exercise) => (
                 <div
                   key={exercise.name}
@@ -220,13 +221,13 @@ function WorkoutPlanner() {
 
       {/* Workout List */}
       {currentDayWorkout && (
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+        <div className="bg-white rounded-lg shadow-md p-4">
           <div className="mb-6">
             <h2 className="text-xl font-semibold">{currentDayWorkout.focus}</h2>
-            <p className="text-gray-600 mt-2">Complete all exercises in order</p>
+            <p className="text-gray-600 mt-2 text-sm">Complete all exercises in order</p>
           </div>
 
-          <div className="space-y-4 md:space-y-6">
+          <div className="space-y-4">
             {currentDayWorkout.exercises.map((exercise, index) => (
               <div 
                 key={index} 
@@ -240,11 +241,11 @@ function WorkoutPlanner() {
                   setCurrentImageIndex(0);
                 }}
               >
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex flex-col md:flex-row items-start gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                  <div className="flex-1 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row items-start gap-4">
                       {exercise.imageLinks && exercise.imageLinks.length > 0 && (
-                        <div className="relative w-24 h-24 flex-shrink-0">
+                        <div className="relative w-full sm:w-24 h-48 sm:h-24 flex-shrink-0">
                           <img
                             src={exercise.imageLinks[currentImageIndex]}
                             alt={exercise.name}
@@ -254,17 +255,17 @@ function WorkoutPlanner() {
                           />
                         </div>
                       )}
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-medium text-lg">{exercise.name}</h3>
                         {exercise.type === 'cardio' ? (
                           <div className="flex items-center text-gray-600 mt-2">
-                            <FiClock className="mr-2" />
-                            <span>{exercise.duration} • {exercise.intensity} intensity</span>
+                            <FiClock className="mr-2 flex-shrink-0" />
+                            <span className="text-sm">{exercise.duration} • {exercise.intensity} intensity</span>
                           </div>
                         ) : exercise.sets ? (
                           <div className="flex items-center text-gray-600 mt-2">
-                            <FiRepeat className="mr-2" />
-                            <span>{exercise.sets} sets × {exercise.reps} reps</span>
+                            <FiRepeat className="mr-2 flex-shrink-0" />
+                            <span className="text-sm">{exercise.sets} sets × {exercise.reps} reps</span>
                           </div>
                         ) : null}
                         {exercise.description && (
@@ -273,7 +274,7 @@ function WorkoutPlanner() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-row md:flex-col items-center md:items-end space-x-2 md:space-x-0 md:space-y-2 w-full md:w-auto">
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end space-x-2 sm:space-x-0 sm:space-y-2 w-full sm:w-auto">
                     {activeTimer === exercise.name ? (
                       <div className="text-center">
                         <div className="text-xl font-bold">{formatTime(timeLeft)}</div>

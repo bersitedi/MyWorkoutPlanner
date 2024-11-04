@@ -12,17 +12,19 @@ function App() {
   return (
     <FitnessProvider>
       <Router>
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 flex flex-col">
           <Navbar />
-          <div className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/planner" element={<WorkoutPlanner />} />
-              <Route path="/exercises" element={<ExerciseList />} />
-              <Route path="/exercise/:id" element={<ExerciseDetails />} />
-              <Route path="/progress" element={<Progress />} />
-            </Routes>
-          </div>
+          <main className="flex-1">
+            <div className="container mx-auto px-4 py-6">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/planner" element={<WorkoutPlanner />} />
+                <Route path="/exercises" element={<ExerciseList />} />
+                <Route path="/exercise/:id" element={<ExerciseDetails />} />
+                <Route path="/progress" element={<Progress />} />
+              </Routes>
+            </div>
+          </main>
         </div>
       </Router>
     </FitnessProvider>
