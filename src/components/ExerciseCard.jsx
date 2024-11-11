@@ -17,7 +17,7 @@ function ExerciseCard({ exercise, showAddToPlanner = true }) {
     primaryMuscles,
     instructions,
     imageLinks,
-    calorieBurnPerHour
+    calorieBurnPerHour,
   } = exercise;
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -30,9 +30,9 @@ function ExerciseCard({ exercise, showAddToPlanner = true }) {
         exercise: {
           ...exercise,
           sets: 3,
-          reps: '12-15'
-        }
-      }
+          reps: '12-15',
+        },
+      },
     });
     setShowDaySelect(false);
   };
@@ -40,7 +40,7 @@ function ExerciseCard({ exercise, showAddToPlanner = true }) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden relative">
       {imageLinks && imageLinks.length > 0 && (
-        <div 
+        <div
           className="relative h-48 overflow-hidden"
           onMouseEnter={() => setCurrentImage(1)}
           onMouseLeave={() => setCurrentImage(0)}
@@ -52,35 +52,36 @@ function ExerciseCard({ exercise, showAddToPlanner = true }) {
           />
         </div>
       )}
-      
+
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold">{name}</h3>
-          <Link 
+          <Link
             to={`/exercise/${encodeURIComponent(name)}`}
             className="text-primary hover:text-primary-dark"
           >
             <FiInfo size={20} />
           </Link>
         </div>
-        
+
         <div className="space-y-2">
           <div className="flex items-center text-sm text-gray-600">
             <FiActivity className="mr-2" />
             <span>Level: {level}</span>
           </div>
-          
+
           <div className="flex items-center text-sm text-gray-600">
             <FiClock className="mr-2" />
             <span>{calorieBurnPerHour} calories/hour</span>
           </div>
-          
+
           <div className="text-sm">
             <span className="font-medium">Equipment:</span> {equipment}
           </div>
-          
+
           <div className="text-sm">
-            <span className="font-medium">Muscles:</span> {primaryMuscles.join(', ')}
+            <span className="font-medium">Muscles:</span>{' '}
+            {primaryMuscles.join(', ')}
           </div>
         </div>
 
@@ -109,10 +110,12 @@ function ExerciseCard({ exercise, showAddToPlanner = true }) {
             )}
           </div>
         )}
-        
+
         <div className="mt-4">
           <details className="text-sm">
-            <summary className="font-medium cursor-pointer">Instructions</summary>
+            <summary className="font-medium cursor-pointer">
+              Instructions
+            </summary>
             <ol className="mt-2 space-y-1 list-decimal list-inside">
               {instructions.map((instruction, index) => (
                 <li key={index}>{instruction}</li>

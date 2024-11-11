@@ -1,202 +1,306 @@
-export const workoutSchedule = [
+// workoutSchedule.jsx
+export let workoutSchedule = [
   {
     day: 'Monday',
-    focus: 'Upper Body (Chest & Triceps) + Cardio',
+    focus: 'Chest & Biceps + Cardio',
     exercises: [
       {
         name: 'Treadmill Warm-Up',
         type: 'cardio',
-        duration: '10 minutes',
-        intensity: 'moderate'
+        duration: '20 minutes',
+        intensity: 'moderate',
+        calorieBurnPerHour: 400,
+        imageLinks: [
+          'https://ik.imagekit.io/yuhonas/tr:w-950,h-980/treadmill_warmup/0.jpg',
+        ],
       },
       {
         name: 'Chest Press Machine',
+        type: 'strength',
         sets: 4,
         reps: '10-12',
-        description: 'Sit on the chest press machine, adjust the seat so handles are at chest level. Push the handles forward until arms are extended, then return slowly.'
+        description:
+          'Push forward to extend arms, then return slowly to start.',
+        calorieBurnPerHour: 300,
+        imageLinks: ['https://example.com/chest_press_machine_1.jpg'],
       },
       {
         name: 'Incline Chest Press Machine',
+        type: 'strength',
         sets: 3,
         reps: '10-12',
-        description: 'Similar to the chest press but at an incline to target upper chest.'
+        description: 'Focuses on upper chest, pressing at an incline.',
+        calorieBurnPerHour: 280,
+        imageLinks: ['https://example.com/incline_chest_press_1.jpg'],
       },
       {
-        name: 'Pec Deck Machine',
-        sets: 3,
-        reps: '12-15',
-        description: 'Sit with your back against the pad, place forearms on the pads, and bring the arms together in front of you, squeezing the chest.'
-      },
-      {
-        name: 'Tricep Extension Machine',
-        sets: 3,
+        name: 'Bicep Curl Machine',
+        type: 'strength',
+        sets: 4,
         reps: '10-12',
-        description: 'Adjust the seat and handles, extend your arms downward by pushing the handles, then return slowly.'
+        description: 'Curl the weight towards shoulders, then lower slowly.',
+        calorieBurnPerHour: 250,
+        imageLinks: ['https://example.com/bicep_curl_machine.jpg'],
       },
-      {
-        name: 'Cable Tricep Pushdown',
-        sets: 3,
-        reps: '12-15',
-        description: 'Using a cable machine with a bar attachment, push the bar down until arms are fully extended, then return.'
-      },
-      {
-        name: 'Elliptical',
-        type: 'cardio',
-        duration: '15 minutes',
-        intensity: 'moderate'
-      }
-    ]
+    ],
   },
   {
     day: 'Tuesday',
-    focus: 'Lower Body (Legs & Glutes) + Core',
+    focus: 'Legs + Core',
     exercises: [
       {
-        name: 'Stationary Bike Warm-Up',
+        name: 'Stationary Bike',
         type: 'cardio',
-        duration: '10 minutes',
-        intensity: 'moderate'
+        duration: '20 minutes',
+        intensity: 'moderate',
+        calorieBurnPerHour: 420,
+        imageLinks: ['https://example.com/stationary_bike.jpg'],
       },
       {
         name: 'Leg Press Machine',
+        type: 'strength',
         sets: 4,
         reps: '10-12',
-        description: 'Sit on the leg press, place feet shoulder-width apart on the platform, and push to extend legs without locking knees, then return.'
-      },
-      {
-        name: 'Leg Extension Machine',
-        sets: 3,
-        reps: '12-15',
-        description: 'Adjust the machine so your knees align with the pivot point, extend your legs fully, then return.'
+        description: 'Push platform to extend legs, avoiding knee lockout.',
+        calorieBurnPerHour: 300,
+        imageLinks: ['https://example.com/leg_press_machine.jpg'],
       },
       {
         name: 'Leg Curl Machine',
+        type: 'strength',
         sets: 3,
         reps: '12-15',
-        description: 'Position yourself on the leg curl machine, curl your legs towards your buttocks, then return.'
-      },
-      {
-        name: 'Glute Bridge Machine',
-        sets: 3,
-        reps: '12-15',
-        description: 'Position hips on the pad, thrust upward by engaging glutes, then lower.'
+        description: 'Curl legs back towards glutes, then return slowly.',
+        calorieBurnPerHour: 270,
+        imageLinks: ['https://example.com/leg_curl_machine.jpg'],
       },
       {
         name: 'Abdominal Crunch Machine',
+        type: 'strength',
         sets: 3,
         reps: '15-20',
-        description: 'Adjust the seat, perform controlled crunches focusing on the abdominal contraction.'
-      }
-    ]
+        description: 'Engage abs to pull forward, then return slowly.',
+        calorieBurnPerHour: 240,
+        imageLinks: ['https://example.com/ab_crunch_machine.jpg'],
+      },
+    ],
   },
   {
     day: 'Wednesday',
     focus: 'Back & Biceps + Cardio',
     exercises: [
       {
-        name: 'Rowing Machine Warm-Up',
+        name: 'Rowing Machine',
         type: 'cardio',
-        duration: '10 minutes',
-        intensity: 'moderate'
+        duration: '20 minutes',
+        intensity: 'moderate',
+        calorieBurnPerHour: 450,
+        imageLinks: ['https://example.com/rowing_machine.jpg'],
       },
       {
         name: 'Lat Pulldown Machine',
+        type: 'strength',
         sets: 4,
         reps: '10-12',
-        description: 'Pull the bar down to your chest, squeezing shoulder blades together, then return.'
+        description:
+          'Pull bar down to chest, squeezing shoulder blades together.',
+        calorieBurnPerHour: 280,
+        imageLinks: ['https://example.com/lat_pulldown_machine.jpg'],
       },
       {
         name: 'Seated Cable Row Machine',
+        type: 'strength',
         sets: 4,
         reps: '10-12',
-        description: 'Pull the handles towards your torso, squeeze the back muscles, then extend arms.'
-      },
-      {
-        name: 'T-Bar Row Machine',
-        sets: 3,
-        reps: '10-12',
-        description: 'Pull the weighted bar towards your chest while keeping your back straight.'
+        description: 'Pull handles to torso, squeeze back, then extend arms.',
+        calorieBurnPerHour: 300,
+        imageLinks: ['https://example.com/seated_cable_row_machine.jpg'],
       },
       {
         name: 'Bicep Curl Machine',
-        sets: 4,
+        type: 'strength',
+        sets: 3,
         reps: '10-12',
-        description: 'Adjust the seat and handles, curl the weight towards your shoulders, then lower.'
+        description: 'Curl the weight towards shoulders, then lower slowly.',
+        calorieBurnPerHour: 250,
+        imageLinks: ['https://example.com/bicep_curl_machine.jpg'],
       },
-      {
-        name: 'Stair Climber',
-        type: 'cardio',
-        duration: '15 minutes',
-        intensity: 'moderate'
-      }
-    ]
+    ],
   },
   {
     day: 'Thursday',
-    focus: 'Shoulders & Core',
+    focus: 'Chest & Core',
     exercises: [
       {
-        name: 'Shoulder Press Machine',
+        name: 'Elliptical Machine',
+        type: 'cardio',
+        duration: '20 minutes',
+        intensity: 'moderate',
+        calorieBurnPerHour: 400,
+        imageLinks: ['https://example.com/elliptical.jpg'],
+      },
+      {
+        name: 'Pec Deck Machine',
+        type: 'strength',
+        sets: 3,
+        reps: '12-15',
+        description:
+          'Squeeze handles together in front of chest, then return slowly.',
+        calorieBurnPerHour: 250,
+        imageLinks: ['https://example.com/pec_deck_machine.jpg'],
+      },
+      {
+        name: 'Incline Chest Press Machine',
+        type: 'strength',
         sets: 4,
         reps: '10-12',
-        description: 'Press the handles upward until arms are extended, then lower.'
+        description: 'Press upward at an incline to target upper chest.',
+        calorieBurnPerHour: 280,
+        imageLinks: ['https://example.com/incline_chest_press.jpg'],
       },
       {
-        name: 'Lateral Raise Machine',
-        sets: 3,
-        reps: '12-15',
-        description: 'Raise arms to the sides up to shoulder level, then lower.'
-      },
-      {
-        name: 'Rear Delt Fly Machine',
-        sets: 3,
-        reps: '12-15',
-        description: 'Focus on squeezing the rear shoulders by pulling the handles backward.'
-      },
-      {
-        name: 'Shrug Machine',
-        sets: 3,
-        reps: '12-15',
-        description: 'Elevate shoulders towards ears, hold briefly, then lower.'
-      },
-      {
-        name: 'Abdominal Twist Machine',
+        name: 'Ab Crunch Machine',
+        type: 'strength',
         sets: 3,
         reps: '15-20',
-        description: 'Rotate torso against resistance, engaging oblique muscles.'
-      }
-    ]
+        description:
+          'Focus on contracting abs to pull forward, then return slowly.',
+        calorieBurnPerHour: 230,
+        imageLinks: ['https://example.com/ab_crunch_machine.jpg'],
+      },
+    ],
   },
   {
     day: 'Friday',
-    focus: 'Full Body Circuit + Cardio',
+    focus: 'Legs & Cardio',
     exercises: [
       {
-        name: 'Jump Rope Warm-Up',
+        name: 'Treadmill Warm-Up',
         type: 'cardio',
-        duration: '5-10 minutes',
-        intensity: 'moderate'
-      },
-      {
-        name: 'Circuit Training',
-        rounds: 3,
-        exercises: [
-          { name: 'Leg Press Machine', reps: 12 },
-          { name: 'Chest Press Machine', reps: 12 },
-          { name: 'Lat Pulldown Machine', reps: 12 },
-          { name: 'Shoulder Press Machine', reps: 12 },
-          { name: 'Bicep Curl Machine', reps: 12 },
-          { name: 'Tricep Extension Machine', reps: 12 },
-          { name: 'Abdominal Crunch Machine', reps: 15 }
+        duration: '20 minutes',
+        intensity: 'moderate',
+        calorieBurnPerHour: 400,
+        imageLinks: [
+          'https://ik.imagekit.io/yuhonas/tr:w-950,h-980/treadmill_warmup/0.jpg',
         ],
-        restBetweenCircuits: '2 minutes'
       },
       {
-        name: 'HIIT Cardio',
+        name: 'Leg Extension Machine',
+        type: 'strength',
+        sets: 3,
+        reps: '12-15',
+        description: 'Extend legs fully to target quads, then return slowly.',
+        calorieBurnPerHour: 270,
+        imageLinks: ['https://example.com/leg_extension_machine.jpg'],
+      },
+      {
+        name: 'Calf Raise Machine',
+        type: 'strength',
+        sets: 4,
+        reps: '12-15',
+        description: 'Raise heels to contract calves, then lower slowly.',
+        calorieBurnPerHour: 200,
+        imageLinks: ['https://example.com/calf_raise_machine.jpg'],
+      },
+      {
+        name: 'Leg Press Machine',
+        type: 'strength',
+        sets: 4,
+        reps: '10-12',
+        description: 'Push to extend legs without locking knees, then return.',
+        calorieBurnPerHour: 300,
+        imageLinks: ['https://example.com/leg_press_machine.jpg'],
+      },
+    ],
+  },
+  {
+    day: 'Saturday',
+    focus: 'Legs & Cardio',
+    exercises: [
+      {
+        name: 'Treadmill Warm-Up',
         type: 'cardio',
-        duration: '15 minutes',
-        description: '30 seconds sprint/high intensity, 30 seconds rest'
-      }
-    ]
-  }
+        duration: '20 minutes',
+        intensity: 'moderate',
+        calorieBurnPerHour: 400,
+        imageLinks: [
+          'https://ik.imagekit.io/yuhonas/tr:w-950,h-980/treadmill_warmup/0.jpg',
+        ],
+      },
+      {
+        name: 'Leg Extension Machine',
+        type: 'strength',
+        sets: 3,
+        reps: '12-15',
+        description: 'Extend legs fully to target quads, then return slowly.',
+        calorieBurnPerHour: 270,
+        imageLinks: ['https://example.com/leg_extension_machine.jpg'],
+      },
+      {
+        name: 'Calf Raise Machine',
+        type: 'strength',
+        sets: 4,
+        reps: '12-15',
+        description: 'Raise heels to contract calves, then lower slowly.',
+        calorieBurnPerHour: 200,
+        imageLinks: ['https://example.com/calf_raise_machine.jpg'],
+      },
+      {
+        name: 'Leg Press Machine',
+        type: 'strength',
+        sets: 4,
+        reps: '10-12',
+        description: 'Push to extend legs without locking knees, then return.',
+        calorieBurnPerHour: 300,
+        imageLinks: ['https://example.com/leg_press_machine.jpg'],
+      },
+    ],
+  },
+  {
+    day: 'Sunday',
+    focus: 'Legs & Cardio',
+    exercises: [
+      {
+        name: 'Treadmill Warm-Up',
+        type: 'cardio',
+        duration: '20 minutes',
+        intensity: 'moderate',
+        calorieBurnPerHour: 400,
+        imageLinks: [
+          'https://ik.imagekit.io/yuhonas/tr:w-950,h-980/treadmill_warmup/0.jpg',
+        ],
+      },
+      {
+        name: 'Leg Extension Machine',
+        type: 'strength',
+        sets: 3,
+        reps: '12-15',
+        description: 'Extend legs fully to target quads, then return slowly.',
+        calorieBurnPerHour: 270,
+        imageLinks: ['https://example.com/leg_extension_machine.jpg'],
+      },
+      {
+        name: 'Calf Raise Machine',
+        type: 'strength',
+        sets: 4,
+        reps: '12-15',
+        description: 'Raise heels to contract calves, then lower slowly.',
+        calorieBurnPerHour: 200,
+        imageLinks: ['https://example.com/calf_raise_machine.jpg'],
+      },
+      {
+        name: 'Leg Press Machine',
+        type: 'strength',
+        sets: 4,
+        reps: '10-12',
+        description: 'Push to extend legs without locking knees, then return.',
+        calorieBurnPerHour: 300,
+        imageLinks: ['https://example.com/leg_press_machine.jpg'],
+      },
+    ],
+  },
 ];
+
+export const updateWorkoutSchedule = (newSchedule) => {
+  workoutSchedule = newSchedule;
+};

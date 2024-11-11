@@ -9,7 +9,7 @@ const initialState = {
   caloriesBurned: 0,
   currentWeek: 1,
   exercises: exercises,
-  schedule: workoutSchedule
+  schedule: workoutSchedule, // Initial schedule from workoutSchedule module
 };
 
 function fitnessReducer(state, action) {
@@ -18,41 +18,43 @@ function fitnessReducer(state, action) {
       return {
         ...state,
         completedWorkouts: [...state.completedWorkouts, action.payload],
-        caloriesBurned: state.caloriesBurned + action.payload.calories
+        caloriesBurned: state.caloriesBurned + action.payload.calories,
       };
     case 'SET_CURRENT_WEEK':
       return {
         ...state,
-        currentWeek: action.payload
+        currentWeek: action.payload,
       };
     case 'ADD_EXERCISE_TO_DAY': {
-      const updatedSchedule = state.schedule.map(day => {
+      const updatedSchedule = state.schedule.map((day) => {
         if (day.day === action.payload.day) {
           return {
             ...day,
-            exercises: [...day.exercises, action.payload.exercise]
+            exercises: [...day.exercises, action.payload.exercise],
           };
         }
         return day;
       });
       return {
         ...state,
-        schedule: updatedSchedule
+        schedule: updatedSchedule,
       };
     }
     case 'REMOVE_EXERCISE_FROM_DAY': {
-      const updatedSchedule = state.schedule.map(day => {
+      const updatedSchedule = state.schedule.map((day) => {
         if (day.day === action.payload.day) {
           return {
             ...day,
-            exercises: day.exercises.filter(ex => ex.name !== action.payload.exerciseName)
+            exercises: day.exercises.filter(
+              (ex) => ex.name !== action.payload.exerciseName
+            ),
           };
         }
         return day;
       });
       return {
         ...state,
-        schedule: updatedSchedule
+        schedule: updatedSchedule,
       };
     }
     case 'LOAD_STATE':
@@ -60,7 +62,7 @@ function fitnessReducer(state, action) {
         ...state,
         ...action.payload,
         exercises: exercises,
-        schedule: workoutSchedule
+        schedule: workoutSchedule, // Reload from module if updated
       };
     default:
       return state;
@@ -70,6 +72,7 @@ function fitnessReducer(state, action) {
 export function FitnessProvider({ children }) {
   const [state, dispatch] = useReducer(fitnessReducer, initialState);
 
+  // Load state from local storage if it exists
   useEffect(() => {
     const savedState = localStorage.getItem('fitnessState');
     if (savedState) {
@@ -77,6 +80,7 @@ export function FitnessProvider({ children }) {
     }
   }, []);
 
+  // Save state to local storage whenever it changes
   useEffect(() => {
     localStorage.setItem('fitnessState', JSON.stringify(state));
   }, [state]);

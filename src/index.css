@@ -22,8 +22,8 @@ body {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /* Responsive font sizes */
@@ -35,15 +35,15 @@ body {
 
 /* Better touch targets on mobile */
 @media (max-width: 640px) {
-  button, 
-  input, 
+  button,
+  input,
   select {
     min-height: 44px;
   }
 }
 
 /* Improve form elements on mobile */
-input[type="date"] {
+input[type='date'] {
   -webkit-appearance: none;
   appearance: none;
   background-color: #fff;
@@ -55,7 +55,9 @@ input[type="date"] {
 
 /* Fix iOS input zoom */
 @media screen and (max-width: 640px) {
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
   }
 }

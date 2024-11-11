@@ -6,6 +6,7 @@ import WorkoutPlanner from './components/WorkoutPlanner';
 import ExerciseList from './components/ExerciseList';
 import ExerciseDetails from './components/ExerciseDetails';
 import Progress from './components/Progress';
+import WorkoutGenerator from './components/WorkoutGenerator'; // Import WorkoutGenerator
 import './App.css';
 
 function App() {
@@ -22,6 +23,8 @@ function App() {
                 <Route path="/exercises" element={<ExerciseList />} />
                 <Route path="/exercise/:id" element={<ExerciseDetails />} />
                 <Route path="/progress" element={<Progress />} />
+                {/* <Route path="/generate" element={<WorkoutGenerator />} />{' '}
+                Add this route */}
               </Routes>
             </div>
           </main>

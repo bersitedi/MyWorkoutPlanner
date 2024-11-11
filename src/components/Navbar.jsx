@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiCalendar, FiActivity, FiList, FiMenu, FiX } from 'react-icons/fi';
+import {
+  FiHome,
+  FiCalendar,
+  FiActivity,
+  FiList,
+  FiMenu,
+  FiX,
+  FiZap,
+} from 'react-icons/fi';
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,7 +18,8 @@ function Navbar() {
     { path: '/', icon: FiHome, label: 'Home' },
     { path: '/planner', icon: FiCalendar, label: 'Planner' },
     { path: '/exercises', icon: FiList, label: 'Exercises' },
-    { path: '/progress', icon: FiActivity, label: 'Progress' }
+    { path: '/progress', icon: FiActivity, label: 'Progress' },
+    //{ path: '/generate', icon: FiZap, label: 'Generate Workout' }, // Ensure this path is correct
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -20,7 +29,10 @@ function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="text-white text-xl font-bold flex items-center">
+          <Link
+            to="/"
+            className="text-white text-xl font-bold flex items-center"
+          >
             <FiActivity className="mr-2" />
             FitTrack
           </Link>
