@@ -56,6 +56,21 @@ function fitnessReducer(state, action) {
         ...state,
         schedule: updatedSchedule,
       };
+    } 
+    case 'UPDATE_DAY_EXERCISES': {
+      const updatedSchedule = state.schedule.map((day) => {
+        if (day.day === action.payload.day) {
+          return {
+            ...day,
+            exercises: action.payload.exercises,
+          };
+        }
+        return day;
+      });
+      return {
+        ...state,
+        schedule: updatedSchedule,
+      };
     }
     case 'LOAD_STATE':
       return {
