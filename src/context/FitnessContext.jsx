@@ -1,83 +1,56 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
-import { exercises } from '../data/exercises';
+import { exercises } from '../data/exerciseData';
 import { workoutSchedule } from '../data/workoutSchedule';
+import { workoutHistoryService } from '../services/workoutHistory';
+import { useAuth } from './AuthContext';
 
 const FitnessContext = createContext();
 
 const initialState = {
-  completedWorkouts: [],
-  caloriesBurned: 0,
-  currentWeek: 1,
   exercises: exercises,
-  schedule: workoutSchedule, // Initial schedule from workoutSchedule module
+  workoutSchedule: workoutSchedule,
+  workoutHistory: [],
+  stats: {
+    totalWorkouts: 0,
+    workoutsByType: {},
+    lastWorkout: null,
+    streakDays: 0
+  }
 };
 
 function fitnessReducer(state, action) {
   switch (action.type) {
-    case 'COMPLETE_WORKOUT':
+    case 'SET_WORKOUT_HISTORY':
       return {
         ...state,
-        completedWorkouts: [...state.completedWorkouts, action.payload],
-        caloriesBurned: state.caloriesBurned + action.payload.calories,
+        workoutHistory: action.payload
       };
-    case 'SET_CURRENT_WEEK':
+    case 'ADD_WORKOUT':
       return {
         ...state,
-        currentWeek: action.payload,
+        workoutHistory: [action.payload, ...state.workoutHistory]
       };
-    case 'ADD_EXERCISE_TO_DAY': {
-      const updatedSchedule = state.schedule.map((day) => {
-        if (day.day === action.payload.day) {
-          return {
-            ...day,
-            exercises: [...day.exercises, action.payload.exercise],
-          };
-        }
-        return day;
-      });
+    case 'UPDATE_WORKOUT':
       return {
         ...state,
-        schedule: updatedSchedule,
+        workoutHistory: state.workoutHistory.map(workout =>
+          workout.id === action.payload.id ? { ...workout, ...action.payload.updates } : workout
+        )
       };
-    }
-    case 'REMOVE_EXERCISE_FROM_DAY': {
-      const updatedSchedule = state.schedule.map((day) => {
-        if (day.day === action.payload.day) {
-          return {
-            ...day,
-            exercises: day.exercises.filter(
-              (ex) => ex.name !== action.payload.exerciseName
-            ),
-          };
-        }
-        return day;
-      });
+    case 'DELETE_WORKOUT':
       return {
         ...state,
-        schedule: updatedSchedule,
+        workoutHistory: state.workoutHistory.filter(workout => workout.id !== action.payload)
       };
-    } 
-    case 'UPDATE_DAY_EXERCISES': {
-      const updatedSchedule = state.schedule.map((day) => {
-        if (day.day === action.payload.day) {
-          return {
-            ...day,
-            exercises: action.payload.exercises,
-          };
-        }
-        return day;
-      });
+    case 'UPDATE_STATS':
       return {
         ...state,
-        schedule: updatedSchedule,
+        stats: action.payload
       };
-    }
-    case 'LOAD_STATE':
+    case 'UPDATE_SCHEDULE':
       return {
         ...state,
-        ...action.payload,
-        exercises: exercises,
-        schedule: workoutSchedule, // Reload from module if updated
+        workoutSchedule: action.payload
       };
     default:
       return state;
@@ -86,31 +59,63 @@ function fitnessReducer(state, action) {
 
 export function FitnessProvider({ children }) {
   const [state, dispatch] = useReducer(fitnessReducer, initialState);
+  const { currentUser } = useAuth();
 
-  // Load state from local storage if it exists
+  // Load user's workout history when user changes
   useEffect(() => {
-    const savedState = localStorage.getItem('fitnessState');
-    if (savedState) {
-      dispatch({ type: 'LOAD_STATE', payload: JSON.parse(savedState) });
+    if (currentUser) {
+      const history = workoutHistoryService.getUserHistory(currentUser.id);
+      dispatch({ type: 'SET_WORKOUT_HISTORY', payload: history });
+      
+      const stats = workoutHistoryService.getUserStats(currentUser.id);
+      dispatch({ type: 'UPDATE_STATS', payload: stats });
     }
-  }, []);
+  }, [currentUser]);
 
-  // Save state to local storage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('fitnessState', JSON.stringify(state));
-  }, [state]);
+  const addWorkout = (workout) => {
+    if (!currentUser) return;
+    
+    const newWorkout = workoutHistoryService.addWorkout(currentUser.id, workout);
+    dispatch({ type: 'ADD_WORKOUT', payload: newWorkout });
+    
+    const stats = workoutHistoryService.getUserStats(currentUser.id);
+    dispatch({ type: 'UPDATE_STATS', payload: stats });
+  };
+
+  const updateWorkout = (workoutId, updates) => {
+    if (!currentUser) return;
+    
+    workoutHistoryService.updateWorkout(currentUser.id, workoutId, updates);
+    dispatch({ type: 'UPDATE_WORKOUT', payload: { id: workoutId, updates } });
+    
+    const stats = workoutHistoryService.getUserStats(currentUser.id);
+    dispatch({ type: 'UPDATE_STATS', payload: stats });
+  };
+
+  const deleteWorkout = (workoutId) => {
+    if (!currentUser) return;
+    
+    workoutHistoryService.deleteWorkout(currentUser.id, workoutId);
+    dispatch({ type: 'DELETE_WORKOUT', payload: workoutId });
+    
+    const stats = workoutHistoryService.getUserStats(currentUser.id);
+    dispatch({ type: 'UPDATE_STATS', payload: stats });
+  };
+
+  const value = {
+    state,
+    addWorkout,
+    updateWorkout,
+    deleteWorkout
+  };
 
   return (
-    <FitnessContext.Provider value={{ state, dispatch }}>
+    <FitnessContext.Provider value={value}>
       {children}
     </FitnessContext.Provider>
   );
 }
 
 export function useFitness() {
-  const context = useContext(FitnessContext);
-  if (!context) {
-    throw new Error('useFitness must be used within a FitnessProvider');
-  }
-  return context;
+  return useContext(FitnessContext);
 }

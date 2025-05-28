@@ -2,7 +2,75 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useFitness } from '../context/FitnessContext';
 import ExerciseCard from './ExerciseCard';
 import FilterSelect from './FilterSelect';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiPlay } from 'react-icons/fi';
+import axios from 'axios';
+
+// Modal Component (defined here for simplicity, can be moved to separate file)
+const ExerciseDemoModal = ({ exercise, onClose }) => {
+  const [exerciseData, setExerciseData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchDemo = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(
+          `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(exercise.name)}`,
+          {
+            headers: {
+              'X-RapidAPI-Key': process.env.REACT_APP_RAPIDAPI_KEY,
+              'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com'
+            }
+          }
+        );
+        setExerciseData(response.data[0]);
+      } catch (err) {
+        console.error("Error fetching demo:", err);
+        setError('Failed to load exercise demo');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchDemo();
+  }, [exercise.name]);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white p-6 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <button 
+          onClick={onClose}
+          className="float-right font-bold hover:text-primary"
+        >
+          ✕
+        </button>
+        
+        {isLoading ? (
+          <p className="text-center py-8">Loading demo...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : exerciseData ? (
+          <>
+            <h3 className="text-xl font-bold mb-2">{exerciseData.name}</h3>
+            <img 
+              src={exerciseData.gifUrl} 
+              alt={exerciseData.name}
+              className="w-full h-48 object-contain mb-4"
+            />
+            <div className="space-y-2">
+              <p><strong>Equipment:</strong> {exerciseData.equipment}</p>
+              <p><strong>Target Muscles:</strong> {exerciseData.target}</p>
+              <p><strong>Secondary Muscles:</strong> {exerciseData.secondaryMuscles?.join(', ') || 'None'}</p>
+            </div>
+          </>
+        ) : (
+          <p>No demo available</p>
+        )}
+      </div>
+    </div>
+  );
+};
 
 function ExerciseList() {
   const { state } = useFitness();
@@ -16,10 +84,11 @@ function ExerciseList() {
     primaryMuscle: '',
     category: '',
   });
+  const [selectedExercise, setSelectedExercise] = useState(null);
 
   const ITEMS_PER_PAGE = 9;
 
-  // Memoize filter options to prevent unnecessary recalculations
+  // Memoize filter options
   const levelOptions = useMemo(() => {
     return Array.from(
       new Set(exercises.map((e) => e.level).filter(Boolean))
@@ -72,7 +141,6 @@ function ExerciseList() {
 
   const totalPages = Math.ceil(filteredExercises.length / ITEMS_PER_PAGE);
 
-  // Adjust currentPage if it exceeds totalPages
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages || 1);
@@ -143,7 +211,16 @@ function ExerciseList() {
       {paginatedExercises.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginatedExercises.map((exercise) => (
-            <ExerciseCard key={exercise.name} exercise={exercise} />
+            <div key={exercise.name} className="relative group">
+              <ExerciseCard exercise={exercise} />
+              <button
+                onClick={() => setSelectedExercise(exercise)}
+                className="absolute top-3 right-3 bg-primary text-white p-2 rounded-full hover:bg-primary-dark transition-opacity opacity-0 group-hover:opacity-100"
+                aria-label="View exercise demo"
+              >
+                <FiPlay />
+              </button>
+            </div>
           ))}
         </div>
       ) : (
@@ -176,6 +253,13 @@ function ExerciseList() {
             Next
           </button>
         </div>
+      )}
+
+      {selectedExercise && (
+        <ExerciseDemoModal 
+          exercise={selectedExercise} 
+          onClose={() => setSelectedExercise(null)} 
+        />
       )}
     </div>
   );

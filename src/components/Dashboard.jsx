@@ -3,6 +3,7 @@ import { useFitness } from '../context/FitnessContext';
 
 export default function Dashboard() {
   const { state } = useFitness();
+  const { workoutHistory, stats } = state;
 
   return (
     <div className="space-y-6">
@@ -12,40 +13,48 @@ export default function Dashboard() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center space-x-2">
             <FiAward className="text-primary text-xl" />
-            <h2 className="text-xl font-semibold">Workouts Completed</h2>
+            <h2 className="text-xl font-semibold">Total Workouts</h2>
           </div>
-          <p className="text-3xl font-bold mt-2">{state.completedWorkouts.length}</p>
+          <p className="text-3xl font-bold mt-2">{stats.totalWorkouts}</p>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center space-x-2">
             <FiZap className="text-primary text-xl" />
-            <h2 className="text-xl font-semibold">Calories Burned</h2>
+            <h2 className="text-xl font-semibold">Streak Days</h2>
           </div>
-          <p className="text-3xl font-bold mt-2">{state.caloriesBurned}</p>
+          <p className="text-3xl font-bold mt-2">{stats.streakDays}</p>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center space-x-2">
             <FiCalendar className="text-primary text-xl" />
-            <h2 className="text-xl font-semibold">Current Week</h2>
+            <h2 className="text-xl font-semibold">Last Workout</h2>
           </div>
-          <p className="text-3xl font-bold mt-2">{state.currentWeek}</p>
+          <p className="text-xl mt-2">
+            {stats.lastWorkout ? new Date(stats.lastWorkout.date).toLocaleDateString() : 'No workouts yet'}
+          </p>
         </div>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
         <div className="space-y-4">
-          {state.completedWorkouts.slice(-5).map((workout, index) => (
-            <div key={index} className="flex items-center justify-between border-b pb-2">
-              <div>
-                <p className="font-medium">{workout.name}</p>
-                <p className="text-sm text-gray-500">{new Date(workout.date).toLocaleDateString()}</p>
+          {workoutHistory.length > 0 ? (
+            workoutHistory.slice(0, 5).map((workout, index) => (
+              <div key={workout.id || index} className="flex items-center justify-between border-b pb-2">
+                <div>
+                  <p className="font-medium">{workout.type || 'Workout'}</p>
+                  <p className="text-sm text-gray-500">{new Date(workout.date).toLocaleDateString()}</p>
+                </div>
+                <span className="text-primary font-medium">
+                  {workout.duration ? `${workout.duration} min` : 'Completed'}
+                </span>
               </div>
-              <span className="text-primary font-medium">{workout.calories} cal</span>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-gray-500">No workout history yet. Start your fitness journey today!</p>
+          )}
         </div>
       </div>
     </div>

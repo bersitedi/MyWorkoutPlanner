@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FiHome,
   FiCalendar,
@@ -9,20 +9,32 @@ import {
   FiX,
   FiZap,
 } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
 
   const navItems = [
     { path: '/', icon: FiHome, label: 'Home' },
     { path: '/planner', icon: FiCalendar, label: 'Planner' },
     { path: '/exercises', icon: FiList, label: 'Exercises' },
     { path: '/progress', icon: FiActivity, label: 'Progress' },
-    //{ path: '/generate', icon: FiZap, label: 'Generate Workout' }, // Ensure this path is correct
+    { path: '/generate', icon: FiZap, label: 'Generate Workout' },
   ];
 
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  };
 
   return (
     <nav className="bg-primary shadow-lg sticky top-0 z-50">

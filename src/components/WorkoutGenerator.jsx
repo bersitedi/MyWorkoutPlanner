@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { updateWorkoutSchedule } from '../data/workoutSchedule';
+import { exercises } from '../data/exerciseData';
+import { workoutSchedule } from '../data/workoutSchedule';
 
 const WorkoutGenerator = () => {
   const [apiKey, setApiKey] = useState('');
