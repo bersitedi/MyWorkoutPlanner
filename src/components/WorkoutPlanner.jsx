@@ -14,6 +14,7 @@ import { useFitness } from '../context/FitnessContext';
 import { format } from 'date-fns';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { workoutSchedule } from '../data/workoutSchedule';
+import { toast } from 'react-hot-toast';
 
 const DroppableExercises = ({ selectedDay, exercises, onDragEnd }) => {
   return (
@@ -134,9 +135,9 @@ function WorkoutPlanner() {
   const startTimer = (exercise) => {
     let duration = 0;
     if (exercise.type === 'cardio') {
-      duration = parseInt(exercise.duration) * 60;
+      duration = parseInt(exercise.duration) * 60; // Convert minutes to seconds
     } else if (exercise.sets && exercise.reps) {
-      duration = exercise.sets * 45; // Adjust as needed
+      duration = exercise.sets * 45; // 45 seconds per set for strength exercises
     }
 
     // Prevent multiple intervals for the same exercise
@@ -146,26 +147,29 @@ function WorkoutPlanner() {
 
     const intervalId = setInterval(() => {
       setExerciseTimers((prevTimers) => {
-        const currentTimeLeft = prevTimers[exercise.name].timeLeft - 1;
+        const currentTimeLeft = prevTimers[exercise.name]?.timeLeft - 1;
+        
         if (currentTimeLeft <= 0) {
-          clearInterval(prevTimers[exercise.name].intervalId);
+          clearInterval(prevTimers[exercise.name]?.intervalId);
+          // Automatically complete the exercise when timer ends
+          handleCompleteExercise(exercise, duration);
           return {
             ...prevTimers,
             [exercise.name]: {
-              ...prevTimers[exercise.name],
               timeLeft: 0,
+              totalTime: duration,
               intervalId: null,
             },
           };
-        } else {
-          return {
-            ...prevTimers,
-            [exercise.name]: {
-              ...prevTimers[exercise.name],
-              timeLeft: currentTimeLeft,
-            },
-          };
         }
+
+        return {
+          ...prevTimers,
+          [exercise.name]: {
+            ...prevTimers[exercise.name],
+            timeLeft: currentTimeLeft,
+          },
+        };
       });
     }, 1000);
 
@@ -177,14 +181,18 @@ function WorkoutPlanner() {
         intervalId: intervalId,
       },
     }));
+
+    // Show start message
+    toast.info(`Started timer for ${exercise.name}`);
   };
 
   // Stop timer for an exercise
   const stopTimer = (exercise) => {
     const exerciseTimer = exerciseTimers[exercise.name];
-    if (exerciseTimer && exerciseTimer.intervalId) {
+    if (exerciseTimer?.intervalId) {
       clearInterval(exerciseTimer.intervalId);
       const timeSpent = exerciseTimer.totalTime - exerciseTimer.timeLeft;
+      
       setExerciseTimers((prevTimers) => ({
         ...prevTimers,
         [exercise.name]: {
@@ -192,28 +200,40 @@ function WorkoutPlanner() {
           intervalId: null,
         },
       }));
+
       return timeSpent;
     }
     return 0;
   };
 
   // Handle exercise completion
-  const handleCompleteExercise = (exercise) => {
-    const timeSpent = stopTimer(exercise);
+  const handleCompleteExercise = (exercise, timeSpent = 0) => {
+    const currentTime = new Date().toISOString();
+    const calories = exercise.type === 'cardio'
+      ? calculateCardioCalories(exercise.duration, exercise.intensity)
+      : calculateStrengthCalories(exercise.sets, exercise.reps);
+
     dispatch({
       type: 'COMPLETE_WORKOUT',
       payload: {
+        id: Date.now(),
         name: exercise.name,
-        calories:
-          exercise.type === 'cardio'
-            ? calculateCardioCalories(exercise.duration, exercise.intensity)
-            : calculateStrengthCalories(exercise.sets, exercise.reps),
-        date: new Date(selectedDate).toISOString(),
+        type: exercise.type,
         sets: exercise.sets,
         reps: exercise.reps,
-        duration: timeSpent,
-      },
+        duration: timeSpent || (exercise.type === 'cardio' ? parseInt(exercise.duration) * 60 : exercise.sets * 45),
+        intensity: exercise.intensity,
+        calories,
+        date: currentTime,
+        day: selectedDay
+      }
     });
+
+    // Stop the timer if it's running
+    stopTimer(exercise);
+
+    // Show success message
+    toast.success(`Completed ${exercise.name}!`);
   };
 
   const calculateCardioCalories = (duration, intensity) => {
@@ -450,20 +470,42 @@ function WorkoutPlanner() {
                   <p className="text-sm text-gray-600">
                     {exercise.primaryMuscles.join(', ')}
                   </p>
-                  <button
-                    onClick={() => addExerciseToDay(exercise)}
-                    className="mt-2 px-3 py-1 bg-primary text-white rounded-md text-sm hover:bg-opacity-90 transition-colors"
-                  >
-                    Add to {selectedDay}
-                  </button>
-                  {exerciseToReplace && (
+                  <div className="flex items-center mt-4 space-x-2">
+                    {exerciseTimers[exercise.name]?.intervalId ? (
+                      <button
+                        onClick={() => {
+                          const timeSpent = stopTimer(exercise);
+                          handleCompleteExercise(exercise, timeSpent);
+                        }}
+                        className="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 flex items-center space-x-2"
+                      >
+                        <FiClock className="mr-1" />
+                        <span>
+                          {formatTime(exerciseTimers[exercise.name]?.timeLeft || 0)}
+                        </span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => startTimer(exercise)}
+                        className="px-3 py-1 bg-primary text-white rounded-md text-sm hover:bg-opacity-90 flex items-center space-x-2"
+                      >
+                        <FiClock className="mr-1" />
+                        <span>Start Timer</span>
+                      </button>
+                    )}
                     <button
-                      onClick={() => replaceExerciseInDay(exercise)}
-                      className="mt-2 ml-2 px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors"
+                      onClick={() => openReplaceModalWithFilters(exercise)}
+                      className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
                     >
-                      Replace Selected
+                      Replace
                     </button>
-                  )}
+                    <button
+                      onClick={() => removeExerciseFromDay(exercise.name)}
+                      className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -506,18 +548,6 @@ function WorkoutPlanner() {
                           }`}
                         >
                           <div className="flex flex-col sm:flex-row items-start gap-4">
-                            {exercise.gifUrl && (
-                              <div className="relative w-full sm:w-24 h-48 sm:h-24 flex-shrink-0">
-                                <img
-                                  src={exercise.gifUrl}
-                                  alt={exercise.name}
-                                  className="w-full h-full object-cover rounded-lg"
-                                  onError={(e) => {
-                                    e.target.src = `https://placehold.co/400x300/f3f4f6/000000?text=${encodeURIComponent(exercise.name)}`;
-                                  }}
-                                />
-                              </div>
-                            )}
                             <div className="flex-1">
                               <h3 className="font-medium text-lg mb-2">
                                 {exercise.name}
@@ -543,12 +573,28 @@ function WorkoutPlanner() {
                                 </p>
                               )}
                               <div className="flex items-center mt-4 space-x-2">
-                                <button
-                                  onClick={() => handleCompleteExercise(exercise)}
-                                  className="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600"
-                                >
-                                  Complete
-                                </button>
+                                {exerciseTimers[exercise.name]?.intervalId ? (
+                                  <button
+                                    onClick={() => {
+                                      const timeSpent = stopTimer(exercise);
+                                      handleCompleteExercise(exercise, timeSpent);
+                                    }}
+                                    className="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 flex items-center space-x-2"
+                                  >
+                                    <FiClock className="mr-1" />
+                                    <span>
+                                      {formatTime(exerciseTimers[exercise.name]?.timeLeft || 0)}
+                                    </span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => startTimer(exercise)}
+                                    className="px-3 py-1 bg-primary text-white rounded-md text-sm hover:bg-opacity-90 flex items-center space-x-2"
+                                  >
+                                    <FiClock className="mr-1" />
+                                    <span>Start Timer</span>
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => openReplaceModalWithFilters(exercise)}
                                   className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"

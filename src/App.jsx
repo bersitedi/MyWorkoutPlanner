@@ -11,6 +11,7 @@ import ExerciseList from './components/ExerciseList';
 import ExerciseDetails from './components/ExerciseDetails';
 import Progress from './components/Progress';
 import WorkoutGenerator from './components/WorkoutGenerator'; // Import WorkoutGenerator
+import { Toaster } from 'react-hot-toast';
 import './App.css';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
       <FitnessProvider>
         <Router>
           <div className="min-h-screen bg-gray-100 flex flex-col">
+            <Toaster position="top-right" />
             <Navbar />
             <main className="flex-1">
               <div className="container mx-auto px-4 py-6">
