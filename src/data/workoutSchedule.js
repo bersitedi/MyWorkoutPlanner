@@ -10,9 +10,7 @@ export let workoutSchedule = [
         duration: '20 minutes',
         intensity: 'moderate',
         calorieBurnPerHour: 400,
-        imageLinks: [
-          'https://ik.imagekit.io/yuhonas/tr:w-950,h-980/treadmill_warmup/0.jpg',
-        ],
+        gifUrl: 'https://placehold.co/400x300/f3f4f6/000000?text=Treadmill+Warm-Up',
       },
       {
         name: 'Chest Press Machine',
@@ -22,7 +20,7 @@ export let workoutSchedule = [
         description:
           'Push forward to extend arms, then return slowly to start.',
         calorieBurnPerHour: 300,
-        imageLinks: ['https://example.com/chest_press_machine_1.jpg'],
+        gifUrl: 'https://placehold.co/400x300/f3f4f6/000000?text=Chest+Press+Machine',
       },
       {
         name: 'Incline Chest Press Machine',
@@ -31,7 +29,7 @@ export let workoutSchedule = [
         reps: '10-12',
         description: 'Focuses on upper chest, pressing at an incline.',
         calorieBurnPerHour: 280,
-        imageLinks: ['https://example.com/incline_chest_press_1.jpg'],
+        gifUrl: 'https://placehold.co/400x300/f3f4f6/000000?text=Incline+Chest+Press',
       },
       {
         name: 'Bicep Curl Machine',
@@ -40,7 +38,7 @@ export let workoutSchedule = [
         reps: '10-12',
         description: 'Curl the weight towards shoulders, then lower slowly.',
         calorieBurnPerHour: 250,
-        imageLinks: ['https://example.com/bicep_curl_machine.jpg'],
+        gifUrl: 'https://placehold.co/400x300/f3f4f6/000000?text=Bicep+Curl+Machine',
       },
     ],
   },

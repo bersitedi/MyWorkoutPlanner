@@ -1,5 +1,5 @@
 // WorkoutPlanner.js
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FiClock,
   FiActivity,
@@ -13,11 +13,91 @@ import {
 import { useFitness } from '../context/FitnessContext';
 import { format } from 'date-fns';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { workoutSchedule } from '../data/workoutSchedule';
+
+const DroppableExercises = ({ selectedDay, exercises, onDragEnd }) => {
+  return (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <Droppable droppableId={selectedDay} type="EXERCISE" mode="standard" direction="vertical">
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="space-y-4"
+          >
+            {exercises.map((exercise, index) => (
+              <Draggable
+                key={exercise.name}
+                draggableId={exercise.name}
+                index={index}
+              >
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className={`bg-white rounded-lg shadow-md p-4 ${
+                      snapshot.isDragging ? 'opacity-50' : ''
+                    }`}
+                  >
+                    {/* Exercise content */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                      <div className="flex-1 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row items-start gap-4">
+                          {exercise.gifUrl && (
+                            <div className="relative w-full sm:w-24 h-48 sm:h-24 flex-shrink-0">
+                              <img
+                                src={exercise.gifUrl}
+                                alt={exercise.name}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <h3 className="font-medium text-lg">
+                              {exercise.name}
+                            </h3>
+                            {exercise.type === 'cardio' ? (
+                              <div className="flex items-center text-gray-600 mt-2">
+                                <FiClock className="mr-2 flex-shrink-0" />
+                                <span className="text-sm">
+                                  {exercise.duration} • {exercise.intensity} intensity
+                                </span>
+                              </div>
+                            ) : exercise.sets ? (
+                              <div className="flex items-center text-gray-600 mt-2">
+                                <FiRepeat className="mr-2 flex-shrink-0" />
+                                <span className="text-sm">
+                                  {exercise.sets} sets × {exercise.reps} reps
+                                </span>
+                              </div>
+                            ) : null}
+                            {exercise.description && (
+                              <p className="text-gray-600 mt-2 text-sm">
+                                {exercise.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </DragDropContext>
+  );
+};
 
 function WorkoutPlanner() {
+  const [schedule, setSchedule] = useState(workoutSchedule);
   const [selectedDay, setSelectedDay] = useState('Monday');
   const { state, dispatch } = useFitness();
-  const { workoutSchedule: schedule, exercises } = state;
+  const { workoutSchedule: scheduleState, exercises } = state;
   const [showExerciseSearch, setShowExerciseSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -159,8 +239,8 @@ function WorkoutPlanner() {
   });
 
   // Find the current day's workout
-  const currentDayIndex = schedule.findIndex((day) => day.day === selectedDay);
-  const currentDayWorkout = schedule[currentDayIndex];
+  const currentDayIndex = scheduleState.findIndex((day) => day.day === selectedDay);
+  const currentDayWorkout = scheduleState[currentDayIndex];
 
   const addExerciseToDay = (exercise) => {
     dispatch({
@@ -255,7 +335,9 @@ function WorkoutPlanner() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6">
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Workout Planner</h1>
+
       {/* Summary Header */}
       <div className="bg-white rounded-lg shadow-md p-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -297,22 +379,21 @@ function WorkoutPlanner() {
         </button>
       </div>
 
-      <div className="flex overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-        <div className="flex space-x-2">
-          {schedule.map((day) => (
-            <button
-              key={day.day}
-              onClick={() => setSelectedDay(day.day)}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors flex-shrink-0 ${
-                selectedDay === day.day
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+      {/* Day Selection */}
+      <div className="flex overflow-x-auto space-x-4 mb-8 pb-4">
+        {schedule.map((day) => (
+          <button
+            key={day.day}
+            onClick={() => setSelectedDay(day.day)}
+            className={`px-6 py-3 rounded-full text-lg font-medium whitespace-nowrap transition-colors
+              ${selectedDay === day.day
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
-            >
-              {day.day}
-            </button>
-          ))}
-        </div>
+          >
+            {day.day}
+          </button>
+        ))}
       </div>
 
       {/* Exercise Search Modal */}
@@ -380,23 +461,24 @@ function WorkoutPlanner() {
         </div>
       )}
 
-      {/* Workout List */}
+      {/* Workout Schedule */}
       {currentDayWorkout && (
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">{currentDayWorkout.focus}</h2>
-            <p className="text-gray-600 mt-2 text-sm">
-              Complete all exercises in order
-            </p>
-          </div>
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-semibold mb-2">{currentDayWorkout.focus}</h2>
+          <p className="text-gray-600 mb-6">Complete all exercises in order</p>
 
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="exerciseList">
+          <DragDropContext onDragEnd={onDragEnd} enableDefaultSensors={true}>
+            <Droppable 
+              droppableId={selectedDay} 
+              type="EXERCISE" 
+              direction="vertical"
+              mode="standard"
+            >
               {(provided) => (
                 <div
-                  className="space-y-4"
-                  {...provided.droppableProps}
                   ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="space-y-4"
                 >
                   {currentDayWorkout.exercises.map((exercise, index) => (
                     <Draggable
@@ -409,112 +491,45 @@ function WorkoutPlanner() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`border rounded-lg p-4 bg-white ${
+                          className={`bg-white border rounded-lg p-4 ${
                             snapshot.isDragging ? 'shadow-lg' : ''
                           }`}
-                          onMouseEnter={() => {
-                            setHoveredExercise(exercise.name);
-                            setCurrentImageIndex(0);
-                          }}
-                          onMouseLeave={() => {
-                            setHoveredExercise(null);
-                            setCurrentImageIndex(0);
-                          }}
                         >
-                          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                            <div className="flex-1 w-full sm:w-auto">
-                              <div className="flex flex-col sm:flex-row items-start gap-4">
-                                {exercise.imageLinks &&
-                                  exercise.imageLinks.length > 0 && (
-                                    <div className="relative w-full sm:w-24 h-48 sm:h-24 flex-shrink-0">
-                                      <img
-                                        src={
-                                          exercise.imageLinks[currentImageIndex]
-                                        }
-                                        alt={exercise.name}
-                                        className="w-full h-full object-cover rounded-lg"
-                                        onMouseOver={() =>
-                                          hoveredExercise === exercise.name &&
-                                          setCurrentImageIndex(1)
-                                        }
-                                        onMouseOut={() =>
-                                          hoveredExercise === exercise.name &&
-                                          setCurrentImageIndex(0)
-                                        }
-                                      />
-                                    </div>
-                                  )}
-                                <div className="flex-1">
-                                  <h3 className="font-medium text-lg">
-                                    {exercise.name}
-                                  </h3>
-                                  {exercise.type === 'cardio' ? (
-                                    <div className="flex items-center text-gray-600 mt-2">
-                                      <FiClock className="mr-2 flex-shrink-0" />
-                                      <span className="text-sm">
-                                        {exercise.duration} •{' '}
-                                        {exercise.intensity} intensity
-                                      </span>
-                                    </div>
-                                  ) : exercise.sets ? (
-                                    <div className="flex items-center text-gray-600 mt-2">
-                                      <FiRepeat className="mr-2 flex-shrink-0" />
-                                      <span className="text-sm">
-                                        {exercise.sets} sets × {exercise.reps}{' '}
-                                        reps
-                                      </span>
-                                    </div>
-                                  ) : null}
-                                  {exercise.description && (
-                                    <p className="text-gray-600 mt-2 text-sm">
-                                      {exercise.description}
-                                    </p>
-                                  )}
+                          <div className="flex items-start gap-4">
+                            {exercise.gifUrl && (
+                              <img
+                                src={exercise.gifUrl}
+                                alt={exercise.name}
+                                className="w-24 h-24 object-cover rounded-lg"
+                                onError={(e) => {
+                                  e.target.src = `https://placehold.co/400x300/f3f4f6/000000?text=${encodeURIComponent(exercise.name)}`;
+                                }}
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h3 className="text-lg font-medium mb-2">
+                                {exercise.name}
+                              </h3>
+                              {exercise.type === 'cardio' ? (
+                                <div className="flex items-center text-gray-600">
+                                  <FiClock className="mr-2" />
+                                  <span>
+                                    {exercise.duration} • {exercise.intensity} intensity
+                                  </span>
                                 </div>
-                              </div>
-                            </div>
-                            <div className="flex flex-row sm:flex-col items-center sm:items-end space-x-2 sm:space-x-0 sm:space-y-2 w-full sm:w-auto">
-                              {exerciseTimers[exercise.name]?.intervalId ? (
-                                <>
-                                  <button
-                                    onClick={() =>
-                                      handleCompleteExercise(exercise)
-                                    }
-                                    className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 transition-colors"
-                                  >
-                                    Stop Timer
-                                  </button>
-                                  <div className="text-sm text-gray-700">
-                                    Time Left:{' '}
-                                    {formatTime(
-                                      exerciseTimers[exercise.name]?.timeLeft
-                                    )}
-                                  </div>
-                                </>
                               ) : (
-                                <button
-                                  onClick={() => startTimer(exercise)}
-                                  className="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 transition-colors"
-                                >
-                                  Start Timer
-                                </button>
+                                <div className="flex items-center text-gray-600">
+                                  <FiRepeat className="mr-2" />
+                                  <span>
+                                    {exercise.sets} sets × {exercise.reps} reps
+                                  </span>
+                                </div>
                               )}
-                              <button
-                                onClick={() =>
-                                  openReplaceModalWithFilters(exercise)
-                                }
-                                className="px-3 py-1 bg-yellow-500 text-white rounded-md text-sm hover:bg-yellow-600 transition-colors"
-                              >
-                                Select to Replace
-                              </button>
-                              <button
-                                onClick={() =>
-                                  removeExerciseFromDay(exercise.name)
-                                }
-                                className="px-3 py-1 bg-red-100 text-red-600 rounded-md text-sm hover:bg-red-200 transition-colors"
-                              >
-                                Remove
-                              </button>
+                              {exercise.description && (
+                                <p className="text-gray-600 mt-2 text-sm">
+                                  {exercise.description}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </div>
