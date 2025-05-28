@@ -249,9 +249,14 @@ function WorkoutPlanner() {
         day: selectedDay,
         exercise: {
           ...exercise,
-          sets: 3,
-          reps: '12-15',
+          sets: exercise.sets || 3,
+          reps: exercise.reps || '12-15',
           scheduledDate: selectedDate,
+          description: exercise.description || `${exercise.sets || 3} sets of ${exercise.reps || '12-15'} reps`,
+          type: exercise.type || 'strength',
+          intensity: exercise.intensity || 'moderate',
+          duration: exercise.duration || '30',
+          gifUrl: exercise.gifUrl || exercise.imageLinks?.[0] || `https://placehold.co/400x300/f3f4f6/000000.png?text=${encodeURIComponent(exercise.name)}&font-size=16`,
         },
       },
     });
@@ -275,6 +280,11 @@ function WorkoutPlanner() {
           sets: 3,
           reps: '12-15',
           scheduledDate: selectedDate,
+          description: exercise.description || '3 sets of 12-15 reps',
+          type: exercise.type || 'strength',
+          intensity: exercise.intensity || 'moderate',
+          duration: exercise.duration || '30',
+          gifUrl: exercise.gifUrl || exercise.imageLinks?.[0] || `https://placehold.co/400x300/f3f4f6/000000.png?text=${encodeURIComponent(exercise.name)}&font-size=16`,
         },
       },
     });
@@ -467,7 +477,7 @@ function WorkoutPlanner() {
           <h2 className="text-2xl font-semibold mb-2">{currentDayWorkout.focus}</h2>
           <p className="text-gray-600 mb-6">Complete all exercises in order</p>
 
-          <DragDropContext onDragEnd={onDragEnd} enableDefaultSensors={true}>
+          <DragDropContext onDragEnd={onDragEnd}>
             <Droppable 
               droppableId={selectedDay} 
               type="EXERCISE" 
@@ -495,19 +505,21 @@ function WorkoutPlanner() {
                             snapshot.isDragging ? 'shadow-lg' : ''
                           }`}
                         >
-                          <div className="flex items-start gap-4">
+                          <div className="flex flex-col sm:flex-row items-start gap-4">
                             {exercise.gifUrl && (
-                              <img
-                                src={exercise.gifUrl}
-                                alt={exercise.name}
-                                className="w-24 h-24 object-cover rounded-lg"
-                                onError={(e) => {
-                                  e.target.src = `https://placehold.co/400x300/f3f4f6/000000?text=${encodeURIComponent(exercise.name)}`;
-                                }}
-                              />
+                              <div className="relative w-full sm:w-24 h-48 sm:h-24 flex-shrink-0">
+                                <img
+                                  src={exercise.gifUrl}
+                                  alt={exercise.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onError={(e) => {
+                                    e.target.src = `https://placehold.co/400x300/f3f4f6/000000?text=${encodeURIComponent(exercise.name)}`;
+                                  }}
+                                />
+                              </div>
                             )}
                             <div className="flex-1">
-                              <h3 className="text-lg font-medium mb-2">
+                              <h3 className="font-medium text-lg mb-2">
                                 {exercise.name}
                               </h3>
                               {exercise.type === 'cardio' ? (
@@ -530,6 +542,26 @@ function WorkoutPlanner() {
                                   {exercise.description}
                                 </p>
                               )}
+                              <div className="flex items-center mt-4 space-x-2">
+                                <button
+                                  onClick={() => handleCompleteExercise(exercise)}
+                                  className="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600"
+                                >
+                                  Complete
+                                </button>
+                                <button
+                                  onClick={() => openReplaceModalWithFilters(exercise)}
+                                  className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
+                                >
+                                  Replace
+                                </button>
+                                <button
+                                  onClick={() => removeExerciseFromDay(exercise.name)}
+                                  className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
