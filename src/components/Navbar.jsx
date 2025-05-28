@@ -8,6 +8,7 @@ import {
   FiMenu,
   FiX,
   FiZap,
+  FiLogOut,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
@@ -50,7 +51,7 @@ function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-6">
+          <div className="hidden md:flex items-center space-x-6">
             {navItems.map(({ path, icon: Icon, label }) => (
               <Link
                 key={path}
@@ -63,6 +64,15 @@ function Navbar() {
                 <span>{label}</span>
               </Link>
             ))}
+            {currentUser && (
+              <button
+                onClick={handleLogout}
+                className="text-white flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-white/10 transition-colors"
+              >
+                <FiLogOut className="text-lg" />
+                <span>Logout</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -92,6 +102,18 @@ function Navbar() {
                 <span>{label}</span>
               </Link>
             ))}
+            {currentUser && (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-white rounded-md hover:bg-white/10 transition-colors"
+              >
+                <FiLogOut className="text-xl" />
+                <span>Logout</span>
+              </button>
+            )}
           </div>
         </div>
       )}

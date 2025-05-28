@@ -26,9 +26,9 @@ function SignUp() {
       setError('');
       setLoading(true);
       console.log('Attempting signup with:', { email, password });
-      const result = await signup(email, password);
-      console.log('Signup successful:', result);
-      navigate('/');
+      await signup(email, password);
+      console.log('Signup successful');
+      navigate('/login', { state: { message: 'Account created successfully! Please log in.' } });
     } catch (error) {
       console.error('Signup error:', error);
       if (error.message.includes('auth/email-already-in-use')) {

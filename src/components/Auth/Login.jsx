@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 function Login() {
@@ -8,6 +8,7 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -18,11 +19,16 @@ function Login() {
       await login(email, password);
       navigate('/');
     } catch (error) {
-      setError(
-        error.message === 'Firebase: Error (auth/invalid-credential).'
-          ? 'Invalid email or password'
-          : 'Failed to log in'
-      );
+      console.error('Login error:', error);
+      if (error.code === 'auth/network-request-failed') {
+        setError('Network error. Please check your internet connection and try again.');
+      } else if (error.code === 'auth/invalid-credential') {
+        setError('Invalid email or password');
+      } else if (error.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please try again later.');
+      } else {
+        setError('Failed to log in. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -46,6 +52,11 @@ function Login() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {location.state?.message && (
+            <div className="rounded-md bg-green-50 p-4">
+              <div className="text-sm text-green-700">{location.state.message}</div>
+            </div>
+          )}
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700">{error}</div>

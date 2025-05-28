@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { updateWorkoutSchedule } from '../data/workoutSchedule';
-import { exercises } from '../data/exerciseData';
-import { workoutSchedule } from '../data/workoutSchedule';
+import { exercises as localExercises } from '../data/exerciseData';
+import { 
+  fetchAllExercises, 
+  fetchExercisesByBodyPart, 
+  transformExerciseData 
+} from '../api/exerciseDB';
 
 const WorkoutGenerator = () => {
-  const [apiKey, setApiKey] = useState('');
   const [userPreferences, setUserPreferences] = useState({
     fitnessLevel: '',
     focusAreas: [],
@@ -14,12 +17,35 @@ const WorkoutGenerator = () => {
     sex: '',
     height: '',
     weight: '',
-    waist: '',
-    neck: '',
-    availableEquipment: [],
   });
-  const [generatedSchedule, setGeneratedSchedule] = useState(null); // State for displaying JSON
+  const [generatedSchedule, setGeneratedSchedule] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [exercises, setExercises] = useState(localExercises);
+  const [isUsingApi, setIsUsingApi] = useState(true);
+
+  // Fetch exercises from ExerciseDB when component mounts
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const apiExercises = await fetchAllExercises();
+        if (apiExercises.length > 0) {
+          const transformedExercises = apiExercises.map(exercise => 
+            transformExerciseData(exercise)
+          );
+          setExercises([...transformedExercises, ...localExercises]);
+          setIsUsingApi(true);
+        } else {
+          setIsUsingApi(false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch from ExerciseDB:', error);
+        setIsUsingApi(false);
+      }
+    };
+
+    fetchExercises();
+  }, []);
 
   const handlePreferencesChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -29,96 +55,113 @@ const WorkoutGenerator = () => {
     }));
   };
 
-  const handleEquipmentChange = (e) => {
-    const { options } = e.target;
-    const selectedEquipment = Array.from(options)
-      .filter((option) => option.selected)
-      .map((option) => option.value);
-    setUserPreferences((prev) => ({
-      ...prev,
-      availableEquipment: selectedEquipment,
-    }));
-  };
-
-  const parseScheduleContent = (content) => {
-    const schedule = [];
-    const days = content.split('\n\n');
-
-    days.forEach((day) => {
-      const lines = day.split('\n');
-      const dayName = lines[0].replace(':', '').trim();
-      const exercises = lines.slice(1).map((line) => {
-        const [name, details] = line.split(':').map((part) => part.trim());
-        const [sets, reps] = details.match(/\d+/g) || [];
-
-        return {
-          name,
-          sets: sets ? parseInt(sets) : null,
-          reps: reps ? parseInt(reps) : null,
-          description: details,
-        };
-      });
-
-      schedule.push({
-        day: dayName,
-        focus: 'Core Workout', // Example focus, update as needed
-        exercises,
-      });
-    });
-
-    return schedule;
-  };
-
   const generateWorkoutSchedule = async () => {
     setError(null);
-
-    const prompt = `Create a weekly workout schedule based on the following preferences:
-      Age: ${userPreferences.age},
-      Sex: ${userPreferences.sex},
-      Height: ${userPreferences.height} cm,
-      Weight: ${userPreferences.weight} kg,
-      Waist: ${userPreferences.waist} cm,
-      Neck: ${userPreferences.neck} cm,
-      Fitness Level: ${userPreferences.fitnessLevel},
-      Focus Areas: ${userPreferences.focusAreas.join(', ')},
-      Workout Days: ${userPreferences.workoutDays},
-      Include Cardio: ${userPreferences.includeCardio},
-      Available Equipment: ${userPreferences.availableEquipment.join(', ')},
-      Please structure the response to fit a workout schedule format for each day of the week.`;
+    setLoading(true);
 
     try {
-      const response = await fetch(
-        'https://api.openai.com/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 2000,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+      // Validate required fields
+      if (!userPreferences.fitnessLevel) {
+        throw new Error('Please select your fitness level');
+      }
+      if (userPreferences.focusAreas.length === 0) {
+        throw new Error('Please select at least one focus area');
       }
 
-      const data = await response.json();
-      const content = data.choices[0].message.content.trim();
+      // Filter exercises based on user's fitness level
+      const availableExercises = exercises.filter(exercise => {
+        if (userPreferences.fitnessLevel === 'beginner') {
+          return exercise.level === 'beginner';
+        }
+        if (userPreferences.fitnessLevel === 'intermediate') {
+          return ['beginner', 'intermediate'].includes(exercise.level);
+        }
+        return true; // For advanced, include all exercises
+      });
 
-      // Parse the response content into structured JSON
-      const newSchedule = parseScheduleContent(content);
+      // Create workout days based on user preferences
+      const workoutDays = ['Monday', 'Wednesday', 'Friday', 'Tuesday', 'Thursday', 'Saturday'];
+      const selectedDays = workoutDays.slice(0, userPreferences.workoutDays);
 
-      // Update workoutSchedule state and display JSON
+      // Generate schedule
+      const newSchedule = await Promise.all(selectedDays.map(async day => {
+        // Select focus area for the day
+        const focusArea = userPreferences.focusAreas[Math.floor(Math.random() * userPreferences.focusAreas.length)];
+        
+        // Get exercises for the focus area
+        let focusExercises = [];
+        if (isUsingApi) {
+          try {
+            const apiExercises = await fetchExercisesByBodyPart(focusArea);
+            focusExercises = apiExercises.map(ex => transformExerciseData(ex));
+          } catch (error) {
+            console.error('Failed to fetch focus area exercises:', error);
+          }
+        }
+        
+        // Combine with local exercises
+        focusExercises = [
+          ...focusExercises,
+          ...availableExercises.filter(exercise => 
+            exercise.category === focusArea || 
+            exercise.primaryMuscles.some(muscle => focusArea.includes(muscle))
+          )
+        ];
+
+        // Select 3-4 exercises for the day
+        const selectedExercises = [];
+        const numExercises = Math.floor(Math.random() * 2) + 3; // 3-4 exercises
+
+        for (let i = 0; i < numExercises; i++) {
+          if (focusExercises.length > 0) {
+            const randomIndex = Math.floor(Math.random() * focusExercises.length);
+            const exercise = focusExercises[randomIndex];
+            
+            selectedExercises.push({
+              name: exercise.name,
+              sets: userPreferences.fitnessLevel === 'beginner' ? 3 : 4,
+              reps: userPreferences.fitnessLevel === 'beginner' ? 10 : 12,
+              type: exercise.category,
+              imageLinks: exercise.imageLinks,
+              description: exercise.instructions?.join(' ') || exercise.description,
+              intensity: exercise.intensity || 'moderate'
+            });
+
+            // Remove the exercise to avoid duplicates
+            focusExercises.splice(randomIndex, 1);
+          }
+        }
+
+        // Add cardio if requested
+        if (userPreferences.includeCardio) {
+          const cardioExercises = exercises.filter(ex => ex.type === 'cardio');
+          if (cardioExercises.length > 0) {
+            const cardio = cardioExercises[Math.floor(Math.random() * cardioExercises.length)];
+            selectedExercises.unshift({
+              name: cardio.name || 'Cardio Warm-up',
+              duration: '15 minutes',
+              type: 'cardio',
+              intensity: 'moderate',
+              imageLinks: cardio.imageLinks
+            });
+          }
+        }
+
+        return {
+          day,
+          focus: focusArea.charAt(0).toUpperCase() + focusArea.slice(1),
+          exercises: selectedExercises
+        };
+      }));
+
+      // Update workoutSchedule state and display schedule
       updateWorkoutSchedule(newSchedule);
       setGeneratedSchedule(newSchedule);
     } catch (error) {
-      setError(`Failed to generate schedule: ${error.message}`);
+      setError(error.message);
       console.error('Error generating workout schedule:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -129,112 +172,130 @@ const WorkoutGenerator = () => {
           Generate Your Personalized Workout Schedule
         </h2>
 
-        {/* API Key Input */}
-        <label className="block mb-4">
-          <span className="text-gray-700 font-medium">OpenAI API Key</span>
-          <input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter your OpenAI API Key"
-            className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md focus:border-primary focus:ring-primary"
-          />
-        </label>
-
-        {/* User Preferences Inputs */}
+        {/* User Preferences Form */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="block">
-            <span className="text-gray-700 font-medium">Age</span>
-            <input
-              type="number"
-              name="age"
-              value={userPreferences.age}
-              onChange={handlePreferencesChange}
-              className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md focus:border-primary focus:ring-primary"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-gray-700 font-medium">Sex</span>
+            <span className="text-gray-700 font-medium">Fitness Level</span>
             <select
-              name="sex"
+              name="fitnessLevel"
+              value={userPreferences.fitnessLevel}
               onChange={handlePreferencesChange}
               className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md focus:border-primary focus:ring-primary"
             >
               <option value="">Select...</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
             </select>
           </label>
 
           <label className="block">
-            <span className="text-gray-700 font-medium">Height (cm)</span>
-            <input
-              type="number"
-              name="height"
-              value={userPreferences.height}
-              onChange={handlePreferencesChange}
-              className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md focus:border-primary focus:ring-primary"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-gray-700 font-medium">Weight (kg)</span>
-            <input
-              type="number"
-              name="weight"
-              value={userPreferences.weight}
-              onChange={handlePreferencesChange}
-              className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md focus:border-primary focus:ring-primary"
-            />
-          </label>
-
-          {/* Additional Inputs */}
-          {/* ... other input fields as needed */}
-
-          <label className="block col-span-2">
-            <span className="text-gray-700 font-medium">Focus Areas</span>
+            <span className="text-gray-700 font-medium">Workout Days per Week</span>
             <select
-              multiple
-              name="focusAreas"
-              onChange={(e) =>
-                setUserPreferences({
-                  ...userPreferences,
-                  focusAreas: Array.from(
-                    e.target.selectedOptions,
-                    (option) => option.value
-                  ),
-                })
-              }
+              name="workoutDays"
+              value={userPreferences.workoutDays}
+              onChange={handlePreferencesChange}
               className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md focus:border-primary focus:ring-primary"
             >
-              <option value="upper body">Upper Body</option>
-              <option value="lower body">Lower Body</option>
-              <option value="core">Core</option>
-              <option value="cardio">Cardio</option>
+              {[2, 3, 4, 5, 6].map(num => (
+                <option key={num} value={num}>{num} days</option>
+              ))}
             </select>
           </label>
+
+          <div className="col-span-2">
+            <label className="block">
+              <span className="text-gray-700 font-medium">Focus Areas</span>
+              <select
+                multiple
+                name="focusAreas"
+                value={userPreferences.focusAreas}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, option => option.value);
+                  setUserPreferences(prev => ({ ...prev, focusAreas: selected }));
+                }}
+                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md focus:border-primary focus:ring-primary"
+              >
+                <option value="back">Back</option>
+                <option value="cardio">Cardio</option>
+                <option value="chest">Chest</option>
+                <option value="lower arms">Lower Arms</option>
+                <option value="lower legs">Lower Legs</option>
+                <option value="shoulders">Shoulders</option>
+                <option value="upper arms">Upper Arms</option>
+                <option value="upper legs">Upper Legs</option>
+                <option value="waist">Core</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple areas</p>
+            </label>
+          </div>
+
+          <div className="col-span-2">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="includeCardio"
+                checked={userPreferences.includeCardio}
+                onChange={handlePreferencesChange}
+                className="form-checkbox text-primary focus:ring-primary"
+              />
+              <span className="text-gray-700 font-medium">Include Cardio Warm-up</span>
+            </label>
+          </div>
         </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-md">
+            {error}
+          </div>
+        )}
 
         <button
           onClick={generateWorkoutSchedule}
-          className="mt-6 w-full bg-primary text-white py-3 rounded-md font-semibold hover:bg-primary-dark transition"
+          disabled={loading}
+          className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
         >
-          Generate Workout Schedule
+          {loading ? 'Generating...' : 'Generate Workout Schedule'}
         </button>
 
-        {/* Display Error Message if Any */}
-        {error && <p className="text-red-600 mt-4">{error}</p>}
-
-        {/* Display JSON Output of the Generated Schedule */}
+        {/* Display Generated Schedule */}
         {generatedSchedule && (
-          <div className="mt-6 bg-gray-50 p-4 rounded-lg shadow-lg">
-            <h3 className="text-xl font-bold text-primary mb-4">
-              Generated Workout Schedule (JSON)
-            </h3>
-            <pre className="bg-gray-200 p-4 rounded-lg overflow-x-auto">
-              {JSON.stringify(generatedSchedule, null, 2)}
-            </pre>
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold mb-4">Your Workout Schedule</h3>
+            <div className="space-y-4">
+              {generatedSchedule.map((day, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <h4 className="font-bold text-lg text-primary">{day.day} - {day.focus}</h4>
+                  <ul className="mt-2 space-y-2">
+                    {day.exercises.map((exercise, i) => (
+                      <li key={i} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                        <div className="flex items-center gap-4">
+                          {exercise.imageLinks && exercise.imageLinks[0] && (
+                            <img 
+                              src={exercise.imageLinks[0]} 
+                              alt={exercise.name}
+                              className="w-16 h-16 object-cover rounded"
+                            />
+                          )}
+                          <div>
+                            <span className="font-medium">{exercise.name}</span>
+                            {exercise.description && (
+                              <p className="text-sm text-gray-600 mt-1">{exercise.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-gray-600">
+                          {exercise.type === 'cardio' 
+                            ? `${exercise.duration} • ${exercise.intensity} intensity`
+                            : `${exercise.sets} sets × ${exercise.reps} reps`
+                          }
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

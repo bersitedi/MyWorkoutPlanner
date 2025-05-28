@@ -17,7 +17,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 function WorkoutPlanner() {
   const [selectedDay, setSelectedDay] = useState('Monday');
   const { state, dispatch } = useFitness();
-  const { schedule, exercises } = state;
+  const { workoutSchedule: schedule, exercises } = state;
   const [showExerciseSearch, setShowExerciseSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
